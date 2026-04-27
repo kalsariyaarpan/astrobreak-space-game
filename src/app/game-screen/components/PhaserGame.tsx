@@ -51,6 +51,7 @@ export default function PhaserGame({
       private playerSpeed = 320;
       private playerInvincible = false;
       private playerInvincibleTimer = 0;
+      private isMobile = false;
 
       // Bullets
       private bullets!: Phaser.GameObjects.Group;
@@ -154,6 +155,8 @@ export default function PhaserGame({
           this.isTouchingRight = false;
         });
 
+
+          this.isMobile = this.sys.game.device.input.touch;
 
         // Initial HUD values
         onScoreUpdate(0);
@@ -439,10 +442,23 @@ else if (this.cursors.right.isDown || this.isTouchingRight) {
 
         // ── Shooting ──
         this.bulletCooldown -= delta;
-        if (Phaser.Input.Keyboard.JustDown(this.spaceKey) || (this.spaceKey.isDown && this.bulletCooldown <= 0)) {
-          this.fireBullet();
-          this.bulletCooldown = this.BULLET_COOLDOWN;
-        }
+        // if (Phaser.Input.Keyboard.JustDown(this.spaceKey) || (this.spaceKey.isDown && this.bulletCooldown <= 0)) {
+        //   this.fireBullet();
+        //   this.bulletCooldown = this.BULLET_COOLDOWN;
+        // }
+
+            const isShooting =
+        this.spaceKey.isDown ||   // desktop
+        this.isTouchingLeft ||    // mobile
+        this.isTouchingRight;     // mobile
+
+      if (isShooting && this.bulletCooldown <= 0) {
+        this.fireBullet();
+        this.bulletCooldown = this.BULLET_COOLDOWN;
+      }
+
+
+
 
         // ── Move player bullets ──
         const bulletsToRemove: Phaser.GameObjects.Graphics[] = [];
