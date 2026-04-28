@@ -33,24 +33,32 @@ export default function MiniLeaderboard({ playerScore }: MiniLeaderboardProps) {
     (e) => e.username === currentUser && e.score === playerScore
   );
 
-  let display = [...baseEntries];
+ let display = [...baseEntries];
 
-  if (!playerAlreadyInBoard && currentUser && playerScore > 0) {
-    const playerEntry = { rank: 0, username: currentUser, score: playerScore, level: 0 };
-    const merged: typeof display = [];
-    let inserted = false;
-    for (const entry of display) {
-      if (!inserted && playerScore > entry.score) {
-        merged.push({ ...playerEntry, rank: merged.length + 1 });
-        inserted = true;
-      }
-      merged.push({ ...entry, rank: merged.length + 1 });
-    }
-    if (!inserted) merged.push({ ...playerEntry, rank: merged.length + 1 });
-    display = merged.slice(0, 5);
-  } else {
-    display = display.slice(0, 5);
+if (currentUser && playerScore > 0) {
+  const existing = display.find((e) => e.username === currentUser);
+
+  if (!existing || playerScore > existing.score) {
+    display.push({
+      rank: 0,
+      username: currentUser,
+      score: playerScore,
+      level: 0,
+    });
   }
+}
+
+// Sort again
+display.sort((a, b) => b.score - a.score);
+
+// Reassign ranks
+display = display.map((e, i) => ({
+  ...e,
+  rank: i + 1,
+}));
+
+// Keep top 5
+display = display.slice(0, 5);
 
   return (
     <div
@@ -71,13 +79,21 @@ export default function MiniLeaderboard({ playerScore }: MiniLeaderboardProps) {
               key={`${entry.rank}-${entry.username}-${entry.score}`}
               className="flex items-center gap-3 px-3 py-1.5 rounded-sm transition-all"
               style={{
-                background: isPlayer ? 'rgba(0, 245, 255, 0.08)' : 'rgba(255,255,255,0.02)',
+               background:
+  entry.rank === 1
+    ? 'rgba(255,170,0,0.12)'   // 🥇 gold highlight
+    : isPlayer
+    ? 'rgba(0, 245, 255, 0.08)' // 👤 player highlight
+    : 'rgba(255,255,255,0.02)',
                 border: isPlayer ? '1px solid rgba(0, 245, 255, 0.3)' : '1px solid rgba(255,255,255,0.04)',
               }}
             >
               <span
                 className="font-orbitron font-bold text-xs w-5 text-center flex-shrink-0"
-                style={{ color: RANK_COLORS[Math.min(entry.rank - 1, 4)] }}
+                style={{
+  color: RANK_COLORS[Math.min(entry.rank - 1, 4)],
+  textShadow: entry.rank <= 3 ? '0 0 8px currentColor' : 'none',
+}}
               >
                 {entry.rank}
               </span>

@@ -46,11 +46,32 @@ export function getLeaderboard(): LeaderboardEntry[] {
   }
 }
 
+
 export function saveScore(entry: Omit<LeaderboardEntry, 'date'>): void {
   if (typeof window === 'undefined') return;
+
   const board = getLeaderboard();
-  board.push({ ...entry, date: new Date().toISOString() });
-  // Sort by score descending, keep top 10
+
+  const existingIndex = board.findIndex(
+    (e) => e.username === entry.username
+  );
+
+  if (existingIndex !== -1) {
+    // Replace ONLY if new score is higher
+    if (entry.score > board[existingIndex].score) {
+      board[existingIndex] = {
+        ...entry,
+        date: new Date().toISOString(),
+      };
+    }
+  } else {
+    board.push({
+      ...entry,
+      date: new Date().toISOString(),
+    });
+  }
+
+  // Sort and keep top 10
   board.sort((a, b) => b.score - a.score);
   localStorage.setItem(KEYS.LEADERBOARD, JSON.stringify(board.slice(0, 10)));
 }
